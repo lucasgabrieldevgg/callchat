@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0813">
+<title>CallChat — chamadas no navegador, sem login</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{--bg:#0a0813;--bg2:#131022;--bg3:#1c1730;--tx:#ece9f6;--muted:#9b93b8;--brand:#8b5cf6;--brand2:#c084fc;--ok:#34d399;--line:rgba(255,255,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(1200px 700px at 80% -10%,#241a4d 0%,var(--bg) 55%);color:var(--tx);font-family:ui-rounded,-apple-system,'Segoe UI',Roboto,sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer;border:0}
+input{font:inherit}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(10,8,19,.85);backdrop-filter:blur(10px);z-index:5}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px}
+.brand small{color:var(--muted);font-weight:500;font-size:12px}
+main{max-width:960px;margin:0 auto;padding:22px 16px 110px}
+.sheet{background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+h1{font-size:26px;margin-bottom:6px}
+.sub{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px;color:#cfc8e8}
+input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:12px;color:var(--tx);padding:12px 13px;outline:none}
+input[type=text]:focus{border-color:var(--brand)}
+.row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn{flex:1;min-width:140px;padding:13px 16px;border-radius:14px;font-weight:800;background:var(--bg3);color:var(--tx);border:1px solid var(--line)}
+.btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));border:0;color:#fff}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.hint{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:10px}
+.divisor{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:16px 0}
+.divisor::before,.divisor::after{content:"";flex:1;height:1px;background:var(--line)}
+.gridvid{display:grid;gap:10px;grid-template-columns:1fr;margin-top:12px}
+@media(min-width:640px){.gridvid{grid-template-columns:1fr 1fr}}
+.vbox{position:relative;background:var(--bg3);border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:16/10}
+.vbox video{width:100%;height:100%;object-fit:cover;background:#000}
+.vtag{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;font-size:12.5px}
+.controles{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:10px;padding:14px;background:linear-gradient(transparent,var(--bg) 40%);z-index:6;flex-wrap:wrap}
+.ctl{width:56px;height:56px;border-radius:50%;background:var(--bg3);border:1px solid var(--line);font-size:22px;display:flex;align-items:center;justify-content:center;position:relative}
+.ctl.off{background:#5b1d2c;border-color:#a8324a}
+.ctl.sair{background:linear-gradient(135deg,#e11d48,#f43f5e);border:0;color:#fff}
+.ctl small{position:absolute;bottom:-18px;font-size:10px;color:var(--muted);white-space:nowrap}
+.toposal{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;gap:7px;align-items:center;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px}
+.pill b{font-variant-numeric:tabular-nums}
+.copiar{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:999px;padding:7px 14px;font-weight:800;font-size:13px}
+#chat{position:fixed;top:0;right:0;bottom:0;width:min(340px,92vw);background:var(--bg2);border-left:1px solid var(--line);z-index:7;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .22s}
+#chat.aberto{transform:none}
+#chat .c_topo{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);font-weight:800}
+#chat .msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:88%;padding:8px 11px;border-radius:14px;font-size:14px;line-height:1.4;word-break:break-word}
+.m.eu{align-self:flex-end;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-bottom-right-radius:5px}
+.m.outro{align-self:flex-start;background:var(--bg3);border:1px solid var(--line);border-bottom-left-radius:5px}
+.m .q{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}
+.m.eu .q{color:rgba(255,255,255,.75)}
+#chat .c_form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+#chat .c_form input{flex:1;background:var(--bg3);border:1px solid var(--line);border-radius:12px;color:var(--tx);padding:10px 12px;outline:none}
+#chat .c_form button{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:12px;padding:0 16px;font-weight:800}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--line);padding:10px 16px;border-radius:14px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:20;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.cepill{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.cepill .dot{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.cepill .dot.on{background:var(--ok)}
+.aviso{background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.3);border-radius:12px;padding:10px 12px;font-size:12.5px;color:#fde8b8;margin-top:12px;line-height:1.5;display:none}
+.aviso.on{display:block}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">📞 CallChat <small>· chamadas sem login</small></div>
+  <span class="cepill"><span class="dot" id="dot-net"></span> <span id="cep-txt">conectando…</span></span>
+</header>
+
+<main>
+  <section id="home">
+    <div class="sheet">
+      <h1>Chamada direto do navegador 📞</h1>
+      <p class="sub">Sem login, sem instalar nada. Crie a sala, compartilhe o link e converse por voz e vídeo — a conversa vai direto de navegador pra navegador (P2P), ninguém grava nada.</p>
+      <label>Seu nome na chamada (opcional)</label>
+      <input type="text" id="in-nome" maxlength="24" placeholder="ex.: Ana, Zé, anônimo…">
+      <div class="row">
+        <button class="btn primary" id="b-criar">🎙️ Criar chamada</button>
+      </div>
+      <div class="divisor">ou entre com um convite</div>
+      <label>Link ou código da sala</label>
+      <input type="text" id="in-sala" placeholder="cole o link ou o código (ex.: K7Q2XA)">
+      <div class="row">
+        <button class="btn" id="b-entrar">🚪 Entrar na chamada</button>
+      </div>
+      <p class="hint">✅ Login opcional: seu nome e preferências ficam salvos <b>só neste navegador</b> (nada vai pra servidor). 🔒 Conversa P2P e efêmera — nada fica gravado. Até ~6 pessoas por sala.</p>
+      <div class="aviso" id="av-net">⚠️ Não deu pra abrir a chamada — sua rede pode bloquear conexões P2P (comum em wi-fi de trabalho/escola ou 4G restrito). Tente outra rede ou dados móveis.</div>
+    </div>
+  </section>
+
+  <section id="sala" hidden>
+    <div class="toposal">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span class="pill">👥 <b id="n-pessoas">1</b></span>
+        <span class="pill">⏱️ <b id="duracao">00:00</b></span>
+        <span class="pill" id="p-sala"># —</span>
+      </div>
+      <button class="copiar" id="b-copiar">🔗 Copiar link do convite</button>
+    </div>
+    <div class="gridvid" id="grid"></div>
+    <div class="controles">
+      <button class="ctl" id="c-mic" title="microfone">🎤<small>mic</small></button>
+      <button class="ctl" id="c-cam" title="câmera">📹<small>câmera</small></button>
+      <button class="ctl" id="c-tela" title="compartilhar tela">📺<small>tela</small></button>
+      <button class="ctl" id="c-chat" title="chat">💬<small>chat</small></button>
+      <button class="ctl sair" id="c-sair" title="sair">🚪<small>sair</small></button>
+    </div>
+  </section>
+</main>
+
+<aside id="chat">
+  <div class="c_topo">💬 Conversa da chamada <button class="ctl" style="width:34px;height:34px;font-size:14px" id="chat-fechar">✕</button></div>
+  <div class="msgs" id="chat-msgs"></div>
+  <div class="c_form">
+    <input type="text" id="chat-in" maxlength="300" placeholder="mensagem…">
+    <button id="chat-send">➤</button>
+  </div>
+</aside>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ═══════════ CallChat — WebRTC P2P via PeerJS.
+   Áudio/vídeo/chat vão DIRETO entre navegadores. O servidor público do
+   PeerJS só "apresenta" os navegadores (sinalização); mídia nunca passa
+   por lá e nada é gravado. Login opcional = nome salvo no localStorage.
+   Quem CRIA a sala é o "porteiro" (id fixo callchat-v1-SALA-host);
+   visitantes chegam com id aleatório e se apresentam a ele, que faz
+   as apresentações de todos com todos (mesh). ═══════════ */
+const $=s=>document.querySelector(s);
+const PREFIXO='callchat-v1-';
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+             set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3000);}
+function idSala(){const abc='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let s='';const a=new Uint8Array(6);crypto.getRandomValues(a);for(const x of a)s+=abc[x%abc.length];return s;}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function parseSala(txt){txt=(txt||'').trim();if(!txt)return'';
+  const m=txt.match(/[?&]sala=([A-Za-z0-9]{4,12})/);if(m)return m[1].toUpperCase();
+  if(/^[A-Za-z0-9]{4,12}$/.test(txt))return txt.toUpperCase();return'';}
+
+let SALA='', PEER=null, STREAM=null, TELA=false, T0=0, TIMER=null;
+const PAR=new Map();   /* peerId → {call, conn, ui, nome} */
+let NOME=store.get('cc_nome')||'';
+$('#in-nome').value=NOME;
+
+function netOk(){ $('#dot-net').classList.add('on'); $('#cep-txt').textContent='online'; }
+function netRuim(){ $('#dot-net').classList.remove('on'); $('#cep-txt').textContent='sem conexão'; }
+addEventListener('online',netOk); addEventListener('offline',netRuim);
+if(navigator.onLine===false) netRuim(); else netOk();
+
+async function pegarMidia(){
+  if(STREAM) return STREAM;
+  try{ STREAM=await navigator.mediaDevices.getUserMedia({audio:true,video:{width:{ideal:1280},height:{ideal:720}}}); }
+  catch(e){
+    try{ STREAM=await navigator.mediaDevices.getUserMedia({audio:true}); toast('Sem câmera — entrando só com voz 🎤'); }
+    catch(e2){ STREAM=new MediaStream(); toast('Sem mic/câmera — entrando só pra ouvir 👂'); }
+  }
+  return STREAM;
+}
+function caixaVideo(id,nome,eu){
+  const d=document.createElement('div'); d.className='vbox'; d.id='v-'+id;
+  const v=document.createElement('video'); v.autoplay=true; v.playsInline=true; if(eu)v.muted=true;
+  const tag=document.createElement('span'); tag.className='vtag'; tag.textContent=(eu?'✨ ':'')+(nome||'pessoa');
+  d.appendChild(v); d.appendChild(tag); $('#grid').appendChild(d);
+  return {box:d,vid:v,tag};
+}
+function conta(){ $('#n-pessoas').textContent=String(PAR.size+1); }
+function duracao(){ const s=Math.floor((Date.now()-T0)/1000); $('#duracao').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function chatAdd(txt,de,eu){
+  const d=document.createElement('div'); d.className='m '+(eu?'eu':'outro');
+  const q=document.createElement('span'); q.className='q'; q.textContent=eu?'você':(de||'pessoa');
+  d.appendChild(q); d.appendChild(document.createTextNode(txt));
+  $('#chat-msgs').appendChild(d); $('#chat-msgs').scrollTop=99999;
+}
+function chatSend(){
+  const i=$('#chat-in'); const t=i.value.trim(); if(!t) return; i.value='';
+  chatAdd(t,NOME,true);
+  const p=JSON.stringify({t:'chat',de:NOME||'pessoa',txt:t});
+  for(const x of PAR.values()) if(x.conn&&x.conn.open){ try{x.conn.send(p);}catch(e){} }
+}
+function remover(id){
+  const p=PAR.get(id); if(!p) return;
+  try{p.call&&p.call.close();}catch(e){} try{p.conn&&p.conn.close();}catch(e){}
+  const b=document.getElementById('v-'+id); if(b) b.remove();
+  PAR.delete(id); conta();
+}
+/* liga mídia + dataChannel com um peer (quem faz call/connect não muda: é mesh) */
+function ligarPar(id,nome){
+  if(PAR.has(id)) return PAR.get(id);
+  const call=PEER.call(id,STREAM);
+  call.on('stream',rem=>{ const p=PAR.get(id); if(p&&!p.ui.vid.srcObject){ p.ui.vid.srcObject=rem; if(!p.nome&&nome) p.ui.tag.textContent=nome; } });
+  call.on('close',()=>remover(id));
+  const conn=PEER.connect(id,{reliable:true});
+  conn.on('data',d=>receber(d,conn));
+  conn.on('open',()=>{ try{conn.send({t:'ola',nome:NOME||'pessoa'});}catch(e){} });
+  conn.on('close',()=>remover(id));
+  const p={call,conn,ui:caixaVideo(id,nome||'…',false),nome:nome||''};
+  PAR.set(id,p); conta();
+  return p;
+}
+function receber(d,conn){
+  if(!d||typeof d!=='object') return;
+  const idOrig=conn.peer;
+  if(d.t==='ola'){
+    const p=PAR.get(idOrig); if(p){ p.nome=d.nome||'pessoa'; p.ui.tag.textContent=d.nome||'pessoa'; }
+    /* apresento o novato aos outros e os outros ao novato */
+    for(const [id,x] of PAR.entries()){
+      if(id===idOrig||!x.conn||!x.conn.open) continue;
+      try{ x.conn.send({t:'apresenta',id:idOrig,nome:p?p.nome:'pessoa'}); }catch(e){}
+      try{ conn.send({t:'apresenta',id,nome:x.nome||'pessoa'}); }catch(e){}
+    }
+  }
+  else if(d.t==='apresenta'){
+    if(d.id&&d.id!==PEER.id) ligarPar(d.id,d.nome);
+  }
+  else if(d.t==='chat') chatAdd(d.txt,d.de,false);
+}
+
+/* ── entrar na rede ── */
+async function entrar(sala,criando){
+  if(typeof Peer==='undefined'){ $('#av-net').classList.add('on'); throw new Error('Módulo de chamadas não carregou (a rede pode estar bloqueando) — recarrega a página'); }
+  SALA=sala;
+  NOME=$('#in-nome').value.trim(); if(NOME) store.set('cc_nome',NOME);
+  $('#home').hidden=true; $('#sala').hidden=false;
+  $('#p-sala').textContent='# '+SALA;
+  history.replaceState(null,'',location.pathname+'?sala='+SALA);
+  await pegarMidia();
+  const ui=caixaVideo('eu',NOME||'você',true); ui.vid.srcObject=STREAM;
+  T0=Date.now(); TIMER=setInterval(duracao,1000);
+
+  return new Promise((resolve,reject)=>{
+    const porteiro=PREFIXO+SALA+'-host';
+    /* quem CRIA pede o id fixo de porteiro; quem ENTRA usa id aleatório */
+    PEER=new Peer(criando?porteiro:undefined,{debug:1});
+    let resolvido=false;
+    PEER.on('open',id=>{
+      resolvido=true; netOk();
+      if(!criando){
+        /* me apresento ao porteiro; ele me apresenta à sala */
+        const conn=PEER.connect(porteiro,{reliable:true});
+        conn.on('open',()=>conn.send({t:'ola',nome:NOME||'pessoa'}));
+        /* se o porteiro não existir, a sala tá vazia: eu viro o porteiro dela */
+        let vivo=false;
+        conn.on('open',()=>{ vivo=true; });
+        setTimeout(()=>{
+          if(!vivo&&!PAR.size){
+            try{PEER.destroy();}catch(e){}
+            PEER=null; entrar(sala,true).then(resolve).catch(reject);
+          }
+        },4000);
+      }
+      PEER.on('call',call=>{
+        call.answer(STREAM);
+        call.on('stream',rem=>{ const p=PAR.get(call.peer); if(p&&!p.ui.vid.srcObject) p.ui.vid.srcObject=rem; });
+        call.on('close',()=>remover(call.peer));
+        if(!PAR.has(call.peer)) PAR.set(call.peer,{call,conn:null,ui:caixaVideo(call.peer,'…',false),nome:''});
+        conta();
+      });
+      PEER.on('connection',conn=>{
+        conn.on('data',d=>receber(d,conn));
+        conn.on('close',()=>remover(conn.peer));
+        if(!PAR.has(conn.peer)){
+          PAR.set(conn.peer,{call:null,conn,ui:caixaVideo(conn.peer,'…',false),nome:''});
+          conta();
+        }
+      });
+      toast(criando?'🎙️ Chamada criada! Copie o link e manda pras pessoas.':'👋 Você entrou na chamada');
+      resolve();
+    });
+    PEER.on('error',e=>{
+      if(e.type==='unavailable-id'&&criando){
+        /* id do porteiro ocupado = já existe sala com esse código: entro como visitante */
+        try{PEER.destroy();}catch(err){}
+        PEER=null; entrar(sala,false).then(resolve).catch(reject); return;
+      }
+      if(e.type==='peer-unavailable'&&!PAR.size){ /* porteiro sumiu; aguardo re-apresentação */ }
+      if(!resolvido&&(e.type==='network'||e.type==='server-error'||e.type==='socket-error')){
+        $('#av-net').classList.add('on'); reject(new Error('Rede bloqueando chamadas')); return;
+      }
+      netRuim();
+    });
+  });
+}
+function sair(){
+  try{ for(const p of PAR.values()){ p.call&&p.call.close(); p.conn&&p.conn.close(); } }catch(e){}
+  PAR.clear(); $('#grid').innerHTML='';
+  try{ PEER&&PEER.destroy(); }catch(e){} PEER=null;
+  if(STREAM){ STREAM.getTracks().forEach(t=>t.stop()); STREAM=null; }
+  clearInterval(TIMER);
+  SALA='';
+  $('#sala').hidden=true; $('#home').hidden=false;
+  history.replaceState(null,'',location.pathname);
+  toast('👋 Você saiu da chamada');
+}
+
+/* ── controles ── */
+$('#c-mic').onclick=()=>{
+  const trk=STREAM&&STREAM.getAudioTracks()[0]; if(!trk) return toast('Sem microfone');
+  trk.enabled=!trk.enabled; $('#c-mic').classList.toggle('off',!trk.enabled);
+};
+$('#c-cam').onclick=()=>{
+  const trk=STREAM&&STREAM.getVideoTracks()[0]; if(!trk) return toast('Sem câmera');
+  trk.enabled=!trk.enabled; $('#c-cam').classList.toggle('off',!trk.enabled);
+};
+$('#c-tela').onclick=async()=>{
+  if(!navigator.mediaDevices.getDisplayMedia) return toast('Seu navegador não suporta compartilhar tela');
+  try{
+    const tela=await navigator.mediaDevices.getDisplayMedia({video:true});
+    const t=tela.getVideoTracks()[0];
+    for(const p of PAR.values()){
+      const pc=p.call&&p.call.peerConnection; if(!pc) continue;
+      const sender=pc.getSenders().find(x=>x.track&&x.track.kind==='video');
+      if(sender) await sender.replaceTrack(t);
+    }
+    const meu=document.getElementById('v-eu'); if(meu) meu.querySelector('video').srcObject=new MediaStream([t]);
+    t.onended=()=>{ toast('Compartilhamento encerrado — recarregando a chamada…'); setTimeout(()=>location.reload(),1200); };
+    $('#c-tela').classList.add('off');
+    toast('📺 Tela sendo compartilhada');
+  }catch(e){}
+};
+$('#c-chat').onclick=()=>$('#chat').classList.toggle('aberto');
+$('#chat-fechar').onclick=()=>$('#chat').classList.remove('aberto');
+$('#chat-send').onclick=chatSend;
+$('#chat-in').addEventListener('keydown',e=>{ if(e.key==='Enter') chatSend(); });
+$('#c-sair').onclick=sair;
+$('#b-copiar').onclick=async()=>{
+  const link=location.origin+location.pathname+'?sala='+SALA;
+  try{ await navigator.clipboard.writeText(link); toast('🔗 Link copiado — manda pras pessoas!'); }
+  catch(e){ prompt('Copie o link do convite:',link); }
+};
+
+$('#b-criar').onclick=async()=>{
+  const b=$('#b-criar'); b.disabled=true;
+  try{ await entrar(idSala(),true); }catch(e){ toast('⚠️ '+e.message); }
+  b.disabled=false;
+};
+$('#b-entrar').onclick=async()=>{
+  const s=parseSala($('#in-sala').value);
+  if(!s) return toast('Cole o link ou o código da sala');
+  const b=$('#b-entrar'); b.disabled=true;
+  try{ await entrar(s,false); }catch(e){ toast('⚠️ '+e.message); $('#av-net').classList.add('on'); }
+  b.disabled=false;
+};
+
+(function boot(){
+  const s=parseSala(location.search);
+  if(s){ $('#in-sala').value=s; entrar(s,false).catch(()=>toast('⚠️ Não deu pra entrar — tenta de novo')); }
+})();
+</script>
+</body>
+</html>
