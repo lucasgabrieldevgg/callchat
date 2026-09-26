@@ -1,0 +1,13 @@
+{
+  "name": "callchat",
+  "private": true,
+  "version": "1.3.0",
+  "description": "📞 Chamadas de voz/vídeo no navegador sem login — P2P, link pra compartilhar, chat e tela. Grátis.",
+  "scripts": {
+    "test": "node tests/callchat_test.cjs",
+    "e2e": "node tests/cc_e2e.cjs"
+  },
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
