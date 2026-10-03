@@ -4,11 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
-  test:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,4 +16,21 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm test
+      - name: Suíte estática (comportamento + identidade + fixes)
+        run: npm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Instala Chromium do Playwright (+ deps do sistema)
+        run: npx playwright install --with-deps chromium
+      - name: Sobe o site localmente
+        run: python3 -m http.server 8091 & sleep 2
+      - name: E2E de 2 navegadores (conexão, mídia, chat, host-tardio, corrida)
+        run: npm run e2e

@@ -34,7 +34,7 @@ t('aviso de rede bloqueada existe', !!doc.querySelector('#av-net'));
 
 /* FIXES críticos (regressão — os bugs que deixavam a chamada "sozinha") */
 t('FIX 1: convidado ESCUTA a conn que abre (conn.on data no connect)', /PEER\.connect\(porteiro[\s\S]{0,120}conn\.on\('data'/.test(html));
-t('FIX 2: host responde "ola" com o nome (guarda anti ping-pong)', /!p\|\|!p\.nome\)\{ try\{ conn\.send\(\{t:'ola'/.test(html));
+t('FIX 2: responde "ola" com o nome quando não sabia (anti ping-pong: jaSabia antes de registrar)', /const jaSabia=!!\(p&&p\.nome\)/.test(html) && /if\(!jaSabia\)\{ try\{ conn\.send\(\{t:'ola'/.test(html));
 t('FIX 2b: convidado registra o host no PAR e liga mídia pra ele', /if\(!PAR\.has\(porteiro\)\)\{[\s\S]{0,80}caixaVideo\(porteiro[\s\S]{0,120}PEER\.call\(porteiro,STREAM\)/.test(html));
 t('FIX 3: caixaVideo dedupe (fallback não duplica tile)', /const ex=document\.getElementById\('v-'\+id\); if\(ex\) ex\.remove\(\);/.test(html));
 t('fallback: convidado vira host após timeout (auto-organização)', /entrar\(sala,true\)\.then\(resolve\)/.test(html));
@@ -45,6 +45,17 @@ t('P2P: sem servidor de mídia próprio (só sinalização PeerJS)', /Mídia e c
 t('nome salvo só no navegador (localStorage)', /store\.set\('cc_nome'/.test(html));
 t('prefers-reduced-motion respeitado', /prefers-reduced-motion/.test(html));
 t('sem segredo no código', !/ghp_[A-Za-z0-9]{20,}|sk-or-v1-|sk-ant-|vcp_[A-Za-z0-9]{20,}/.test(html));
+
+/* ═══ v1.4 — identidade CABINE + fixes de compartilhamento ═══ */
+t('zero roxo de IA (8b5cf6/c084fc/a855f7)', !/8b5cf6|c084fc|a855f7/i.test(html));
+t('sem texto com gradiente (background-clip)', !html.includes('background-clip:text'));
+t('sem vidro fosco (backdrop-filter)', !html.includes('backdrop-filter'));
+t('sem glow radial de fundo', !html.includes('radial-gradient'));
+t('fonte própria: Space Grotesk', html.includes('Space+Grotesk'));
+t('números em mono: IBM Plex Mono', html.includes('IBM+Plex+Mono'));
+t('--bad definida (dot offline visível)', /--bad:#/.test(html));
+t('parar de compartilhar NÃO recarrega a página', html.includes('voltarCamera') && !html.includes('location.reload'));
+t('guarda honesta pra participante só-áudio', html.includes('só-áudio'));
 
 console.log('\n══════════════════════════');
 console.log(`RESULTADO: ${ok} ✓ / ${fail} ✗ ${fail === 0 ? '— CALLCHAT ÍNTEGRO 📞' : '— HÁ REGRESSÕES!'}`);
