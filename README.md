@@ -1,34 +1,38 @@
+[🇧🇷 Português](README.pt-BR.md)
+
 # 📞 CallChat
 
-[![testes](https://github.com/lucasgabrieldevgg/callchat/actions/workflows/ci.yml/badge.svg)](https://github.com/lucasgabrieldevgg/callchat/actions/workflows/ci.yml)
+[![tests](https://github.com/lucasgabrieldevgg/callchat/actions/workflows/ci.yml/badge.svg)](https://github.com/lucasgabrieldevgg/callchat/actions/workflows/ci.yml)
 
-Chamadas de **voz e vídeo direto no navegador** — sem login, sem instalar nada.
+**Voice and video calls right in the browser** — no login, nothing to install.
 
-- 🔗 Cria a sala e compartilha o link (`?sala=CODIGO`)
-- 🎙️ Voz + vídeo P2P (WebRTC) — a conversa vai direto de navegador pra navegador
-- 📺 Compartilhar tela · 💬 chat da chamada (canal P2P, nunca gravado)
-- 👥 Até ~6 pessoas por sala (mesh)
-- ✅ "Login" opcional: só o nome salvo no seu navegador — nada vai pra servidor
-- 🆓 Grátis: sinalização pelo cloud público do PeerJS, mídia 100% P2P
+- 🔗 Create the room and share the link (`?room=CODE`)
+- 🎙️ P2P voice + video (WebRTC) — the conversation goes straight from browser to browser
+- 📺 Screen sharing · 💬 in-call chat (P2P channel, never recorded)
+- 👥 Up to ~6 people per room (mesh)
+- ✅ Optional "login": just a name saved in your browser — nothing goes to a server
+- 🆓 Free: signaling via PeerJS public cloud, media 100% P2P
 
-## 🌐 Usar
-Abra **https://lucasgabrieldevgg.github.io/callchat**, toque em *Criar chamada* e manda o link.
+## 🌐 Try it
+Open **https://lucasgabrieldevgg.github.io/callchat**, hit *Create call* and share the link.
 
-> ⚠️ Redes que bloqueiam P2P (alguns wi-fis de empresa/escola e 4G restrito) podem impedir a conexão — troque de rede nesse caso.
+> ⚠️ Networks that block P2P (some corporate/school wi-fi and restricted 4G) may prevent the connection — switch networks in that case.
 
-## Como funciona
-Sinalização WebRTC via [PeerJS Cloud](https://peerjs.com) (só apresenta os navegadores); áudio/vídeo/chat viajam direto entre os participantes (STUN do Google). Nada é gravado: sala some quando a chamada acaba.
+## How it works
+WebRTC signaling via [PeerJS Cloud](https://peerjs.com) (it only introduces the browsers); audio/video/chat travel directly between participants (Google STUN). Nothing is recorded: the room vanishes when the call ends.
 
-Feito por [lucasgabrieldevgg](https://github.com/lucasgabrieldevgg) 💜
-## Testar de verdade
-A suíte estática roda no CI (badge acima). O **e2e de 2 navegadores** valida conexão, mídia bidirecional e chat nos dois sentidos:
+Made by [lucasgabrieldevgg](https://github.com/lucasgabrieldevgg) 💜
+
+## Real testing
+The static suite runs on CI (badge above). The **2-browser e2e** validates connection, two-way media and chat in both directions:
 
 ```bash
 npm ci
 npx playwright install chromium
-python3 -m http.server 8091 &   # na pasta do repo
+python3 -m http.server 8091 &   # from the repo folder
 npm run e2e
 ```
 
-## Licença
-MIT — vê o arquivo [LICENSE](LICENSE).
+## License
+
+MIT — see [LICENSE](LICENSE).
