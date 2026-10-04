@@ -103,12 +103,30 @@ input[type=text]:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,1
 #chat .c_form button{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:12px;padding:0 16px;font-weight:800}
 .toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--line);padding:11px 17px;border-radius:14px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:20;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
+/* ═══ v1.5: estado de mic/cam nos tiles, badge de chat, configurações ═══ */
+.st{display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.45);color:#fca5a5;border-radius:999px;padding:2px 8px;gap:3px}
+.st + .st{margin-left:4px}
+#badge-chat{position:absolute;top:-4px;right:-4px;background:var(--brand);color:#231703;font-size:11px;font-weight:900;min-width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.ctl{overflow:visible}
+#cfg{position:fixed;right:16px;top:64px;width:min(340px,92vw);background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:16px;z-index:12;box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.cfg-t{font-weight:800;font-size:14px;margin-bottom:12px}
+.cfg-row{margin-bottom:12px}
+.cfg-l{display:block;font-size:12px;font-weight:700;color:#c8cfc8;margin-bottom:6px}
+.cfg-l small{display:block;color:var(--muted);font-weight:500;margin-top:2px}
+.cfg-opts{display:flex;gap:6px}
+.cfg-opt{flex:1;background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:8px 6px;font-size:12px;font-weight:700;color:var(--muted)}
+.cfg-opt small{display:block;font-weight:500;font-size:10px;margin-top:2px}
+.cfg-opt.on{background:var(--brand);color:#231703;border-color:var(--brand)}
+.cfg-opt.on small{color:rgba(35,23,3,.7)}
+.cfg-opt:disabled{opacity:.5;cursor:not-allowed}
+.cfg-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.cfg-fechar{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:9px;font-weight:800;font-size:12.5px}
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><span class="logo">📞</span> CallChat <small>· sem login</small></div>
+  <div class="brand"><span class="logo">📞</span> CallChat <small>· sem login · <b>v1.5</b></small></div>
   <span class="cepill"><span class="dot" id="dot-net"></span> <span id="cep-txt">online</span></span>
 </header>
 
@@ -153,7 +171,7 @@ input[type=text]:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,1
 </main>
 
 <div id="emojis" hidden>
-  <button data-e="👍">👍</button><button data-e="❤️">❤️</button><button data-e="😂">😂</button><button data-e="😮">😮</button><button data-e="👏">👏</button><button data-e="🎉">🎉</button><button data-e="🔥">🔥</button><button data-e="✋">✋</button>
+  <button data-e="👍">👍</button><button data-e="❤️">❤️</button><button data-e="😂">😂</button><button data-e="😮">😮</button><button data-e="👏">👏</button><button data-e="🎉">🎉</button><button data-e="🔥">🔥</button>
 </div>
 
 <div class="controles" id="barra" hidden>
@@ -161,9 +179,11 @@ input[type=text]:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,1
     <button class="ctl" id="c-mic" title="microfone liga/desliga">🎤</button>
     <button class="ctl" id="c-cam" title="câmera liga/desliga">📹</button>
     <button class="ctl" id="c-tela" title="compartilhar tela">📺</button>
+    <button class="ctl" id="c-mao" title="levantar/abaixar a mão">✋</button>
     <button class="ctl" id="c-emoji" title="reações com emoji">😀</button>
-    <button class="ctl" id="c-cc" title="legendas ao vivo (minha fala)">📝</button>
-    <button class="ctl" id="c-chat" title="chat e transcrição">💬</button>
+    <button class="ctl" id="c-cc" title="legendas ao vivo — IA local (minha fala)">📝</button>
+    <button class="ctl" id="c-chat" title="chat e transcrição">💬<span id="badge-chat" hidden>0</span></button>
+    <button class="ctl" id="c-cfg" title="configurações da chamada">⚙️</button>
     <button class="ctl sair" id="c-sair" title="sair da chamada">📞</button>
   </div>
 </div>
@@ -181,6 +201,29 @@ input[type=text]:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,1
     <button id="chat-send">➤</button>
   </div>
 </aside>
+<div id="cfg" hidden>
+  <div class="cfg-t">⚙️ Configurações da chamada</div>
+  <div class="cfg-row">
+    <label class="cfg-l">Motor das legendas</label>
+    <div class="cfg-opts">
+      <button class="cfg-opt on" id="m-ia">🧠 IA local <small>baixa 1×, roda no teu navegador</small></button>
+      <button class="cfg-opt" id="m-nav">🗣️ Voz do navegador <small>Chrome/Edge</small></button>
+    </div>
+  </div>
+  <div class="cfg-row">
+    <label class="cfg-l">Modelo da IA</label>
+    <div class="cfg-opts">
+      <button class="cfg-opt on" id="md-tiny">⚡ Rápido <small>42 MB</small></button>
+      <button class="cfg-opt" id="md-base">🎯 Melhor <small>~110 MB</small></button>
+    </div>
+  </div>
+  <div class="cfg-row">
+    <label class="cfg-l">Transcrição coletiva <small id="cfg-tr-note">(tudo que for falado, com nome de quem disse)</small></label>
+    <button class="cfg-opt on" id="cfg-tr">📝 LIGADA</button>
+  </div>
+  <div class="cfg-note" id="cfg-host-note"></div>
+  <button class="cfg-fechar" id="cfg-fechar">fechar</button>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -205,6 +248,10 @@ function inicial(n){return (n||'?').trim()[0].toUpperCase()||'?';}
 let SALA='', PEER=null, STREAM=null, T0=0, TIMER=null;
 const PAR=new Map();
 let NOME=store.get('cc_nome')||'';
+/* ═══ v1.5: configurações da chamada (anfitrião manda na transcrição coletiva) ═══ */
+const CFG=Object.assign({motor:'ia',modelo:'tiny',tr:true},(()=>{try{return JSON.parse(store.get('cc_cfg')||'{}')}catch(e){return{}}})());
+function salvaCFG(){ store.set('cc_cfg',JSON.stringify(CFG)); }
+let EU_SOU_HOST=false, NAO_LIDAS=0, ESTADO={mic:true,cam:true};
 $('#in-nome').value=NOME;
 
 function netOk(){ $('#dot-net').classList.add('on'); $('#cep-txt').textContent='online'; }
@@ -245,6 +292,18 @@ function pinar(box){
   document.querySelectorAll('.vbox.pin').forEach(b=>b.classList.remove('pin'));
   if(!ja){ box.classList.add('pin'); toast('📌 Destacado — duplo clique ou 📌 de novo pra voltar'); }
 }
+/* v1.5: badges de mic/cam desligado no tile */
+function renderEstado(id){
+  const p=PAR.get(id);
+  const est=p&&p.est?p.est:(id==='eu'?ESTADO:null);
+  const b=document.getElementById('v-'+id); if(!b||!est) return;
+  let wrap=b.querySelector('.stwrap');
+  if(!wrap){ wrap=document.createElement('span'); wrap.className='stwrap'; wrap.style.display='flex'; wrap.style.gap='4px'; wrap.style.marginLeft='auto'; b.querySelector('.vinfo').appendChild(wrap); }
+  wrap.innerHTML='';
+  if(est.mic===false){ const s=document.createElement('span'); s.className='st'; s.textContent='🔇 mudo'; wrap.appendChild(s); }
+  if(est.cam===false){ const s=document.createElement('span'); s.className='st'; s.textContent='📷 off'; wrap.appendChild(s); }
+}
+function setEstado(id,est){ const p=PAR.get(id); if(p) p.est=Object.assign({},p.est||{},est); if(id==='eu') ESTADO=Object.assign({},ESTADO,est); renderEstado(id); }
 function setNomeTile(id,nome){
   /* FIX: a entrada do PAR guarda o tile em p.ui — o nomeEl de topo nunca
      existiu, então os nomes trocados via ola/apresenta não apareciam NUNCA */
@@ -283,7 +342,12 @@ function chatAdd(txt,de,eu){
   const q=document.createElement('span'); q.className='q'; q.textContent=eu?'você':(de||'pessoa');
   d.appendChild(q); d.appendChild(document.createTextNode(txt));
   $('#pan-msg').appendChild(d); $('#pan-msg').scrollTop=99999;
+  /* v1.5: badge de não lidas quando o chat está fechado */
+  if(!eu && !$('#chat').classList.contains('aberto')){
+    NAO_LIDAS++; const b=$('#badge-chat'); b.textContent=String(NAO_LIDAS); b.hidden=false;
+  }
 }
+function zeraNaoLidas(){ NAO_LIDAS=0; $('#badge-chat').hidden=true; }
 function trAdd(de,txt,eu){
   const p=$('#pan-tr');
   if(p.hidden&&p.dataset.vazio!=='0'){ p.textContent=''; p.dataset.vazio='0'; }
@@ -315,11 +379,60 @@ function setMao(id,on){
   if(!on&&m) m.remove();
 }
 
-/* ── legendas (Web Speech API) ── */
-let REC=null, CC=false;
-const TEM_SR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
-function ligaCC(){
-  if(!TEM_SR){ toast('Seu navegador não suporta legendas (tente Chrome/Edge)'); return; }
+/* ── legendas v1.5: IA LOCAL (Whisper via transformers.js — roda no navegador, grátis)
+      com fallback pra Web Speech API ── */
+let IA=null, IA_BUF=[], IA_OCUPADA=false, IA_CTX=null, IA_PROC=null;
+async function carregaIA(){
+  if(IA&&IA.asr) return IA;
+  toast('⬇️ Baixando a IA das legendas (uma vez só — fica guardada no navegador)…');
+  const mod=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+  mod.env.allowLocalModels=false;
+  const nome=CFG.modelo==='base'?'Xenova/whisper-base':'Xenova/whisper-tiny';
+  const asr=await mod.pipeline('automatic-speech-recognition',nome,{
+    quantized:true,
+    progress_callback:p=>{ if(p.status==='progress'&&p.progress) toast('⬇️ IA das legendas… '+Math.round(p.progress)+'%'); }
+  });
+  IA={asr};
+  toast('🧠 IA das legendas pronta — roda 100% no teu navegador');
+  return IA;
+}
+function concatPCM(blocos){
+  const total=blocos.reduce((s,b)=>s+b.length,0);
+  const saida=new Float32Array(total); let o=0;
+  for(const b of blocos){ saida.set(b,o); o+=b.length; }
+  return saida;
+}
+async function transcreveIA(pcm){
+  if(IA_OCUPADA) return; IA_OCUPADA=true;
+  try{
+    const out=await IA.asr(pcm,{language:'portuguese',task:'transcribe'});
+    const txt=(out&&out.text||'').trim();
+    if(txt.length>1){
+      captionLocal(txt,true);
+      difunde({t:'fala',de:NOME||'pessoa',txt});
+      if(CFG.tr) trAdd(NOME,txt,true);
+    }
+  }catch(e){ toast('⚠️ A IA falhou num trecho — seguindo'); }
+  IA_OCUPADA=false;
+}
+function inicioIA(){
+  try{
+    IA_CTX=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+    const src=IA_CTX.createMediaStreamSource(new MediaStream(STREAM.getAudioTracks()));
+    IA_PROC=IA_CTX.createScriptProcessor(4096,1,1);
+    const mudo=IA_CTX.createGain(); mudo.gain.value=0;
+    src.connect(IA_PROC); IA_PROC.connect(mudo); mudo.connect(IA_CTX.destination);
+    IA_PROC.onaudioprocess=e=>{
+      if(!CC) return;
+      IA_BUF.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+      const total=IA_BUF.reduce((s,b)=>s+b.length,0);
+      if(total>=16000*7&&!IA_OCUPADA){ const pcm=concatPCM(IA_BUF); IA_BUF=[]; transcreveIA(pcm); }
+      if(total>16000*15) IA_BUF=[];   /* não deixa acumular se a IA estiver atrasada */
+    };
+  }catch(e){ throw e; }
+}
+function paraIA(){ try{ IA_PROC&&IA_PROC.disconnect(); }catch(e){} try{ IA_CTX&&IA_CTX.close(); }catch(e){} IA_PROC=null; IA_CTX=null; IA_BUF=[]; IA_OCUPADA=false; }
+function ligaWebSpeech(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   REC=new SR(); REC.lang='pt-BR'; REC.continuous=true; REC.interimResults=true;
   REC.onresult=ev=>{
@@ -331,14 +444,32 @@ function ligaCC(){
     captionLocal(interim||final,false);
     if(final.trim()){
       difunde({t:'fala',de:NOME||'pessoa',txt:final.trim()});
-      trAdd(NOME,final.trim(),true);
+      if(CFG.tr) trAdd(NOME,final.trim(),true);
       captionLocal(final.trim(),true);
     }
   };
-  REC.onend=()=>{ if(CC) try{REC.start();}catch(e){} };
-  try{ REC.start(); CC=true; $('#c-cc').classList.add('ativo'); toast('📝 Legendas LIGADAS — o que você falar aparece pra todos'); }catch(e){ toast('Não deu pra ligar as legendas'); }
+  REC.onend=()=>{ if(CC&&CFG.motor==='nav') try{REC.start();}catch(e){} };
+  try{ REC.start(); }catch(e){ toast('Não deu pra ligar as legendas'); return false; }
+  return true;
 }
-function desligaCC(){ CC=false; try{REC&&REC.stop();}catch(e){} $('#c-cc').classList.remove('ativo'); captionLocal('',true); }
+async function ligaCC(){
+  if(!STREAM||!STREAM.getAudioTracks().length){ toast('Sem microfone — sem legendas'); return; }
+  if(CFG.motor==='ia'){
+    try{
+      await carregaIA();
+      inicioIA();
+      CC=true; $('#c-cc').classList.add('ativo');
+      toast('📝 Legendas com IA LOCAL ligadas — o que você falar aparece pra todos');
+    }catch(e){ toast('IA local falhou — tentando a voz do navegador…'); CFG.motor='nav'; salvaCFG(); pintaCfg(); if(ligaWebSpeech()){ CC=true; $('#c-cc').classList.add('ativo'); } }
+  }else{
+    if(!TEM_SR){ toast('Seu navegador não suporta legendas de voz (tente Chrome/Edge, ou use a IA local)'); return; }
+    if(ligaWebSpeech()){ CC=true; $('#c-cc').classList.add('ativo'); toast('📝 Legendas ligadas (voz do navegador)'); }
+  }
+}
+function desligaCC(){ CC=false; try{REC&&REC.stop();}catch(e){} paraIA(); $('#c-cc').classList.remove('ativo'); captionLocal('',true); }
+/* ── legendas legadas (Web Speech API) ── */
+let REC=null, CC=false;
+const TEM_SR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
 function captionLocal(txt,fixa){
   const b=document.getElementById('v-eu'); if(!b) return;
   let c=b.querySelector('.caption');
@@ -377,7 +508,8 @@ function receber(d,conn){
     /* FIX: responde com o próprio nome se ainda não conhecia a pessoa —
        antes, quem chegava depois nunca sabia o nome do anfitrião (a guarda
        antiga checava DEPOIS de registrar o nome e nunca respondia) */
-    if(!jaSabia){ try{ conn.send({t:'ola',nome:NOME||'anfitrião'}); }catch(e){} }
+    if(!jaSabia){ try{ conn.send({t:'ola',nome:NOME||'Convidado'}); }catch(e){} }
+    if(EU_SOU_HOST){ try{ conn.send({t:'cfg',tr:CFG.tr}); }catch(e){} }
     for(const [id,x] of PAR.entries()){
       if(id===idOrig||!x.conn||!x.conn.open) continue;
       try{ x.conn.send({t:'apresenta',id:idOrig,nome:p?p.nome:'pessoa'}); }catch(e){}
@@ -385,7 +517,9 @@ function receber(d,conn){
     }
   }
   else if(d.t==='apresenta'){ if(d.id&&d.id!==PEER.id) ligarPar(d.id,d.nome); }
-  else if(d.t==='chat') chatAdd(d.txt,d.de,false);
+  else if(d.t==='chat'){ chatAdd(d.txt,d.de,false); if(d.de) toast('💬 nova mensagem de '+(d.de||'pessoa')); }
+  else if(d.t==='estado'){ setEstado(idOrig,{mic:d.mic,cam:d.cam}); }
+  else if(d.t==='cfg'){ if(!EU_SOU_HOST){ CFG.tr=!!d.tr; salvaCFG(); pintaCfg(); toast(d.tr?'📝 Transcrição coletiva LIGADA pelo anfitrião':'📝 Transcrição coletiva desligada pelo anfitrião'); } }
   else if(d.t==='reacao'){ const p=PAR.get(idOrig); const b=p?p.ui.box:document.getElementById('v-eu'); voaEmoji(b||$('#grid'),d.emoji,false); }
   else if(d.t==='mao'){ setMao(idOrig,!!d.up); }
   else if(d.t==='fala'){
@@ -397,13 +531,14 @@ function receber(d,conn){
       c.innerHTML='<b>'+esc(d.de||'pessoa')+':</b> '+esc(d.txt);
       clearTimeout(c._h); c._h=setTimeout(()=>c.remove(),5000);
     }
-    trAdd(d.de,d.txt,false);
+    if(CFG.tr) trAdd(d.de,d.txt,false);
   }
 }
 
 async function entrar(sala,criando){
   if(typeof Peer==='undefined'){ $('#av-net').classList.add('on'); throw new Error('Módulo de chamadas não carregou — recarrega a página'); }
   SALA=sala;
+  EU_SOU_HOST=!!criando;
   /* FIX: entrada por link do convite era SEM nome — o campo nasce vazio e o
      nome salvo no navegador era ignorado (todo mundo virava "pessoa") */
   NOME=$('#in-nome').value.trim()||store.get('cc_nome')||'';
@@ -428,7 +563,7 @@ async function entrar(sala,criando){
         conn.on('open',()=>{ vivo=true; try{conn.send({t:'ola',nome:NOME||'pessoa'});}catch(e){}
           /* FIX: host precisa entrar no PAR do convidado (tile) E receber a chamada de mídia — ninguém iniciava */
           if(!PAR.has(porteiro)){
-            const hp={call:null,conn,ui:caixaVideo(porteiro,'anfitrião',false),nome:''};
+            const hp={call:null,conn,ui:caixaVideo(porteiro,'Convidado',false),nome:''};
             PAR.set(porteiro,hp); conta();
             try{
               const call=PEER.call(porteiro,STREAM);
@@ -466,6 +601,7 @@ async function entrar(sala,criando){
 }
 function sair(){
   if(CC) desligaCC();
+  $('#cfg').hidden=true;
   try{ for(const p of PAR.values()){ p.call&&p.call.close(); p.conn&&p.conn.close(); } }catch(e){}
   PAR.clear(); $('#grid').innerHTML=''; paraMonitores();
   try{ PEER&&PEER.destroy(); }catch(e){} PEER=null;
@@ -482,10 +618,12 @@ function sair(){
 $('#c-mic').onclick=()=>{
   const trk=STREAM&&STREAM.getAudioTracks()[0]; if(!trk) return toast('Sem microfone');
   trk.enabled=!trk.enabled; $('#c-mic').classList.toggle('off',!trk.enabled);
+  setEstado('eu',{mic:trk.enabled}); difunde({t:'estado',mic:trk.enabled});
 };
 $('#c-cam').onclick=()=>{
   const trk=STREAM&&STREAM.getVideoTracks()[0]; if(!trk) return toast('Sem câmera');
   trk.enabled=!trk.enabled; $('#c-cam').classList.toggle('off',!trk.enabled);
+  setEstado('eu',{cam:trk.enabled}); difunde({t:'estado',cam:trk.enabled});
 };
 async function trocaVideoDeTodos(t){
   let fora=0;
@@ -521,6 +659,10 @@ $('#c-tela').onclick=async()=>{
     if(!fora) toast('📺 Tela sendo compartilhada');
   }catch(e){}
 };
+$('#c-mao').onclick=()=>{
+  const up=!document.querySelector('#v-eu .badge-mao');
+  setMao('eu',up); difunde({t:'mao',up}); toast(up?'✋ Mão levantada':'Mão abaixada');
+};
 $('#c-emoji').onclick=()=>{ $('#emojis').hidden=!$('#emojis').hidden; };
 document.querySelectorAll('#emojis button').forEach(b=>{
   b.onclick=()=>{
@@ -530,8 +672,29 @@ document.querySelectorAll('#emojis button').forEach(b=>{
     $('#emojis').hidden=true;
   };
 });
+function pintaCfg(){
+  $('#m-ia').classList.toggle('on',CFG.motor==='ia');
+  $('#m-nav').classList.toggle('on',CFG.motor==='nav');
+  $('#md-tiny').classList.toggle('on',CFG.modelo!=='base');
+  $('#md-base').classList.toggle('on',CFG.modelo==='base');
+  const tr=$('#cfg-tr');
+  tr.classList.toggle('on',CFG.tr);
+  tr.textContent=CFG.tr?'📝 LIGADA':'📝 DESLIGADA';
+  tr.disabled=!!(EU_SOU_HOST===false&&SALA);
+  $('#cfg-host-note').textContent=(SALA&&!EU_SOU_HOST)?'A transcrição coletiva é definida pelo anfitrião — todo mundo recebe a mesma configuração.':'Você é o anfitrião: esse botão define a transcrição pra TODOS na chamada.';
+}
+$('#m-ia').onclick=()=>{ CFG.motor='ia'; salvaCFG(); pintaCfg(); };
+$('#m-nav').onclick=()=>{ CFG.motor='nav'; salvaCFG(); pintaCfg(); };
+$('#md-tiny').onclick=()=>{ CFG.modelo='tiny'; salvaCFG(); pintaCfg(); };
+$('#md-base').onclick=()=>{ CFG.modelo='base'; salvaCFG(); pintaCfg(); toast('Modelo novo vale na próxima vez que ligar as legendas'); };
+$('#cfg-tr').onclick=()=>{
+  CFG.tr=!CFG.tr; salvaCFG(); pintaCfg();
+  if(SALA&&EU_SOU_HOST) difunde({t:'cfg',tr:CFG.tr});
+};
+$('#c-cfg').onclick=()=>{ const c=$('#cfg'); c.hidden=!c.hidden; if(!c.hidden) pintaCfg(); };
+$('#cfg-fechar').onclick=()=>$('#cfg').hidden=true;
 $('#c-cc').onclick=()=>{ CC?desligaCC():ligaCC(); };
-$('#c-chat').onclick=()=>{ $('#chat').classList.toggle('aberto'); abaMsg(); };
+$('#c-chat').onclick=()=>{ const c=$('#chat'); c.classList.toggle('aberto'); if(c.classList.contains('aberto')) zeraNaoLidas(); abaMsg(); };
 $('#chat-fechar').onclick=()=>$('#chat').classList.remove('aberto');
 $('#tab-msg').onclick=abaMsg; $('#tab-tr').onclick=abaTr;
 $('#chat-send').onclick=chatSend;

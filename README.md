@@ -8,7 +8,9 @@
 
 - 🔗 Create the room and share the link (`?room=CODE`)
 - 🎙️ P2P voice + video (WebRTC) — the conversation goes straight from browser to browser
-- 📺 Screen sharing · 💬 in-call chat (P2P channel, never recorded)
+- 📺 Screen sharing · 💬 in-call chat (P2P channel, never recorded) with an **unread badge**
+- 📝 **Live captions with LOCAL AI** — Whisper (transformers.js) runs entirely in your browser after a one-time download; nothing is sent anywhere. Fallback: browser speech (Chrome/Edge). The host can turn **collective transcription** (everything said, with each speaker's name) on/off for everyone in ⚙️
+- ✋ Raise hand (own button) · 🔇/📷 **muted-state badges** on every tile · ⚙️ in-call settings
 - 👥 Up to ~6 people per room (mesh)
 - ✅ Optional "login": just a name saved in your browser — nothing goes to a server
 - 🆓 Free: signaling via PeerJS public cloud, media 100% P2P

@@ -8,7 +8,9 @@ Chamadas de **voz e vídeo direto no navegador** — sem login, sem instalar nad
 
 - 🔗 Cria a sala e compartilha o link (`?sala=CODIGO`)
 - 🎙️ Voz + vídeo P2P (WebRTC) — a conversa vai direto de navegador pra navegador
-- 📺 Compartilhar tela · 💬 chat da chamada (canal P2P, nunca gravado)
+- 📺 Compartilhar tela · 💬 chat da chamada (canal P2P, nunca gravado) com **badge de não lidas**
+- 📝 **Legendas ao vivo com IA LOCAL** — Whisper (transformers.js) roda 100% no teu navegador depois de um download único; nada vai pra servidor nenhum. Fallback: voz do navegador (Chrome/Edge). O anfitrião liga/desliga a **transcrição coletiva** (tudo que for falado, com o nome de quem disse) pra todos no ⚙️
+- ✋ Mão levantada (botão próprio) · badges de **mute 🔇/📷 off** em todo tile · ⚙️ configurações da chamada
 - 👥 Até ~6 pessoas por sala (mesh)
 - ✅ "Login" opcional: só o nome salvo no seu navegador — nada vai pra servidor
 - 🆓 Grátis: sinalização pelo cloud público do PeerJS, mídia 100% P2P

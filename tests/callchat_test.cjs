@@ -57,6 +57,25 @@ t('--bad definida (dot offline visível)', /--bad:#/.test(html));
 t('parar de compartilhar NÃO recarrega a página', html.includes('voltarCamera') && !html.includes('location.reload'));
 t('guarda honesta pra participante só-áudio', html.includes('só-áudio'));
 
+/* ═══ v1.5 — IA local de legendas, estado, mão, cfg, badge ═══ */
+t('legendas com IA local: transformers.js no navegador', html.includes('@xenova/transformers'));
+t('modelo Whisper local (tiny/base)', html.includes('Xenova/whisper-tiny') && html.includes('Xenova/whisper-base'));
+t('captura de áudio pra IA (onaudioprocess → PCM)', html.includes('onaudioprocess') && html.includes('transcribe'));
+t('idioma pt nas legendas IA', html.includes("language:'portuguese'"));
+t('fallback Web Speech preservado', html.includes('webkitSpeechRecognition'));
+t('badge de mic mudo no tile', html.includes('🔇 mudo'));
+t('badge de cam off no tile', html.includes('📷 off'));
+t('estado de mic/cam broadcast na rede', /t:'estado'/.test(html));
+t('botão próprio de ✋ na barra', html.includes('id="c-mao"'));
+t('✋ fora do seletor de emoji', !html.includes('data-e="✋"'));
+t('badge de mensagens não lidas', html.includes('id="badge-chat"') && html.includes('zeraNaoLidas'));
+t('cfg: transcrição coletiva definida pelo anfitrião', /t:'cfg'/.test(html) && html.includes('EU_SOU_HOST'));
+t('transcrição respeita CFG.tr (local e recebida)', html.includes('if(CFG.tr) trAdd'));
+t('cfg persistida no navegador', html.includes("store.get('cc_cfg')"));
+t('painel de configurações na barra', html.includes('id="c-cfg"') && html.includes('id="cfg-tr"'));
+t('v1.5 visível no header (anti-cache)', html.includes('v1.5'));
+t('"anfitrião" não é mais label de tile', !/caixaVideo\([^)]*'anfitrião'/.test(html));
+
 console.log('\n══════════════════════════');
 console.log(`RESULTADO: ${ok} ✓ / ${fail} ✗ ${fail === 0 ? '— CALLCHAT ÍNTEGRO 📞' : '— HÁ REGRESSÕES!'}`);
 process.exit(fail === 0 ? 0 : 1);
