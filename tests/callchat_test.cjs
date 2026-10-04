@@ -76,6 +76,17 @@ t('painel de configurações na barra', html.includes('id="c-cfg"') && html.incl
 t('v1.5 visível no header (anti-cache)', html.includes('v1.5'));
 t('"anfitrião" não é mais label de tile', !/caixaVideo\([^)]*'anfitrião'/.test(html));
 
+/* ═══ craft floor — piso de acabamento (auditoria 03/10) ═══ */
+t('feedback do enviar do chat na tinta escura da casa (--letra)', html.includes('color:var(--letra)'));
+t('zero lavanda fora da paleta (#cfc8e8 extinta)', !html.includes('#cfc8e8'));
+t('letterbox do vídeo no neutro da casa (sem roxo #0d0a1c)', !html.includes('#0d0a1c'));
+t('zero gradiente decorativo (sair e enviar sólidos)', !html.includes('linear-gradient'));
+t('seleção de texto tematizada (âmbar)', html.includes('::selection{background:rgba(255,176,32'));
+t('foco visível por teclado (:focus-visible âmbar)', html.includes(':focus-visible{outline:2px solid var(--brand)'));
+t('scrollbar temático (Firefox + WebKit)', html.includes('scrollbar-color') && html.includes('::-webkit-scrollbar-thumb'));
+t('placeholders com contraste suficiente', html.includes('::placeholder{color:rgba(233,236,231,.45)}'));
+t('meta description presente', html.includes('<meta name="description"'));
+
 console.log('\n══════════════════════════');
 console.log(`RESULTADO: ${ok} ✓ / ${fail} ✗ ${fail === 0 ? '— CALLCHAT ÍNTEGRO 📞' : '— HÁ REGRESSÕES!'}`);
 process.exit(fail === 0 ? 0 : 1);
